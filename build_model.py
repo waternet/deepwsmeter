@@ -1,70 +1,26 @@
 import tensorflow as tf
-import glob
-from skimage import io
-from skimage.transform import resize
-from sklearn.model_selection import train_test_split
-import numpy as np
+from tensorflow.examples.tutorials.mnist import input_data
 
 
-def build():
-    # initialize variables to hold all images and labels
-    X_data = []
-    y_data = []
+def execute():
+    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
-    # load all data
-    def load_data():
-        files = [filename for filename in glob.iglob('data/getallen/test/*/*.jpg', recursive=True)]
-        for file in files:
-            img = io.imread(file, as_grey=True)
-            img = resize(img, (28, 28))
-            X_data.append(np.ndarray.flatten(img))
-            y_data.append(int(file.split('/')[3]))
-
-    load_data()
-
-    # convert to a numpy array
-    X_data = np.array(X_data)
-
-    # split into test train_data
-    X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.33, random_state=28)
-
-    # one hot encode the labels
-    y_train = tf.one_hot(y_train, depth=10)
-    y_test = tf.one_hot(y_test, depth=10)
-
-    print(X_train.shape)
-    print(y_train.shape)
-    # build the model
     x = tf.placeholder(tf.float32, shape=[None, 784])
     y_ = tf.placeholder(tf.float32, shape=[None, 10])
-
 
     def weight_variable(shape):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)
 
-
     def bias_variable(shape):
         initial = tf.constant(0.1, shape=shape)
         return tf.Variable(initial)
 
-
     def conv2d(x, W):
         return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
-
     def max_pool_2x2(x):
         return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-
-
-    def get_batch(i, batchsize):
-        X = X_train[(i-1)*batchsize:i*batchsize]
-        y = y_train[(i-1)*batchsize:i*batchsize]
-        return (X, y)
-
-    batchsize = 100
-    for i in range(int(X_train.shape[0] / batchsize) + 1):
-        get_batch(i+1, batchsize)
 
     W_conv1 = weight_variable([5, 5, 1, 32])
     b_conv1 = bias_variable([32])
@@ -102,16 +58,16 @@ def build():
     saver = tf.train.Saver()
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(2000):
-            #batch = ... maybe later if the training set gets to large
-            if i % 100 == 0:
+        for i in range(20000):
+            batch = mnist.train.next_batch(100)
+            if i % 2000 == 0:
                 train_accuracy = accuracy.eval(feed_dict={
-                    x: X_train, y_: y_train.eval(), keep_prob: 1.0})
+                    x: batch[0], y_: batch[1], keep_prob: 1.0})
                 print('step %d, training accuracy %g' % (i, train_accuracy))
-            train_step.run(feed_dict={x: X_train, y_: y_train.eval(), keep_prob: 0.5})
+            train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
         print('test accuracy %g' % accuracy.eval(feed_dict={
-            x: X_test, y_: y_test.eval(), keep_prob: 1.0}))
+            x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
-        save_path = saver.save(sess, "models/wsmodel.ckpt")
+        save_path = saver.save(sess, "models/tfmodel.ckpt")
         print("Model saved in file: ", save_path)

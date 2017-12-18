@@ -9,7 +9,7 @@ import scipy
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-save_file = './models/tfmodel.ckpt'
+save_file = './models/wsmodel.ckpt'
 
 
 def rgb2gray(rgb):
