@@ -115,3 +115,6 @@ def build():
 
         save_path = saver.save(sess, "models/wsmodel.ckpt")
         print("Model saved in file: ", save_path)
+
+if __name__=="__main__":
+    build()

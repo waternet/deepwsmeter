@@ -81,13 +81,13 @@ def predict(image):
         return prediction.eval(feed_dict={x: [X_new], keep_prob: 1.0}, session = sess)
 
 if __name__ == "__main__":
-    from tensorflow.examples.tutorials.mnist import input_data
-    #mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
-    #print(len(mnist.test.labels))
+    import random
+    import matplotlib.image as mpimg
+    all_testfiles = [filename for filename in glob.iglob('data/getallen/test/*/*.jpg', recursive=True)]
+    random.shuffle(all_testfiles)
 
-    for imgfile in sorted(glob.glob('data/getal*.jpg')):
-        print(imgfile)
-        print(predict(imgfile)[0])
-        #print(mnist.test.labels[predict(imgfile)])
-
-    #print()
+    images = []
+    labels = []
+    for i in range(0, 10):
+        images.append(mpimg.imread(all_testfiles[i]))
+        labels.append(predict(all_testfiles[i]))
